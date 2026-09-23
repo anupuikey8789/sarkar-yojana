@@ -1,0 +1,425 @@
+import { useNavigate } from "react-router-dom"
+import Navbar from "../components/Navbar.jsx"
+
+function SchemeDetails() {
+  const navigate = useNavigate()
+
+  const scheme = {
+    name: "PM-KISAN",
+    category: "Agriculture",
+    type: "Central Government",
+    department: "Ministry of Agriculture & Farmers Welfare",
+
+    description:
+      "PM-KISAN is a government scheme that provides financial support to eligible farmer families.",
+
+    benefits: [
+      "Financial assistance for eligible beneficiaries",
+      "Support for agricultural and household needs",
+      "Direct benefit transfer to eligible beneficiaries",
+    ],
+
+    eligibility: [
+      "Applicant should meet the scheme's farmer eligibility requirements",
+      "Applicant must satisfy the applicable government rules",
+      "Final eligibility is determined by the concerned authority",
+    ],
+
+    documents: [
+      "Aadhaar Card",
+      "Bank Account Details",
+      "Land-related documents",
+      "Other documents as required by the authority",
+    ],
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f5f7f9] text-slate-800">
+
+      <Navbar />
+
+      {/* ================= PAGE HEADER ================= */}
+      <section className="bg-[#063b5c] text-white">
+        <div className="max-w-7xl mx-auto px-5 py-10">
+
+          <button
+            onClick={() => navigate(-1)}
+            className="text-sm text-slate-300 hover:text-white transition mb-8"
+          >
+            ← Back to schemes
+          </button>
+
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+
+            <div className="max-w-3xl">
+
+              <div className="flex flex-wrap gap-3">
+
+                <span className="px-3 py-1.5 bg-white/10 border border-white/20 text-xs font-semibold uppercase tracking-wide">
+                  {scheme.category}
+                </span>
+
+                <span className="px-3 py-1.5 bg-[#e85d04] text-white text-xs font-semibold uppercase tracking-wide">
+                  {scheme.type}
+                </span>
+
+              </div>
+
+              <h1 className="mt-5 text-4xl md:text-5xl font-bold tracking-tight">
+                {scheme.name}
+              </h1>
+
+              <p className="mt-4 text-lg text-slate-300">
+                {scheme.department}
+              </p>
+
+            </div>
+
+            <div className="lg:text-right">
+
+              <p className="text-xs uppercase tracking-wider text-slate-400">
+                Scheme information
+              </p>
+
+              <p className="mt-1 text-sm text-slate-300">
+                Verify latest details before applying
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+
+      {/* ================= MAIN CONTENT ================= */}
+      <main className="max-w-7xl mx-auto px-5 py-12">
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* ================= LEFT CONTENT ================= */}
+          <div className="lg:col-span-2 space-y-6">
+
+            {/* Overview */}
+            <section className="bg-white border border-slate-200">
+
+              <div className="px-6 md:px-8 py-5 border-b border-slate-200">
+                <h2 className="text-xl font-bold text-[#12344d]">
+                  Overview
+                </h2>
+              </div>
+
+              <div className="px-6 md:px-8 py-7">
+
+                <p className="text-slate-600 leading-relaxed">
+                  {scheme.description}
+                </p>
+
+              </div>
+
+            </section>
+
+
+            {/* Benefits */}
+            <section className="bg-white border border-slate-200">
+
+              <div className="px-6 md:px-8 py-5 border-b border-slate-200">
+                <h2 className="text-xl font-bold text-[#12344d]">
+                  Benefits
+                </h2>
+              </div>
+
+              <div className="px-6 md:px-8 py-7">
+
+                <div className="space-y-5">
+
+                  {scheme.benefits.map((benefit, index) => (
+                    <div
+                      key={benefit}
+                      className="flex gap-4"
+                    >
+
+                      <div className="w-8 h-8 shrink-0 bg-[#0b4f71] text-white flex items-center justify-center text-xs font-bold">
+                        {String(index + 1).padStart(2, "0")}
+                      </div>
+
+                      <p className="text-slate-600 leading-relaxed pt-1">
+                        {benefit}
+                      </p>
+
+                    </div>
+                  ))}
+
+                </div>
+
+              </div>
+
+            </section>
+
+
+            {/* Eligibility */}
+            <section className="bg-white border border-slate-200">
+
+              <div className="px-6 md:px-8 py-5 border-b border-slate-200">
+                <h2 className="text-xl font-bold text-[#12344d]">
+                  Eligibility
+                </h2>
+              </div>
+
+              <div className="px-6 md:px-8 py-7">
+
+                <div className="space-y-4">
+
+                  {scheme.eligibility.map((item) => (
+                    <div
+                      key={item}
+                      className="flex gap-4"
+                    >
+
+                      <span className="mt-2 w-2 h-2 bg-[#e85d04] shrink-0" />
+
+                      <p className="text-slate-600 leading-relaxed">
+                        {item}
+                      </p>
+
+                    </div>
+                  ))}
+
+                </div>
+
+              </div>
+
+            </section>
+
+
+            {/* Documents */}
+            <section className="bg-white border border-slate-200">
+
+              <div className="px-6 md:px-8 py-5 border-b border-slate-200">
+                <h2 className="text-xl font-bold text-[#12344d]">
+                  Required Documents
+                </h2>
+              </div>
+
+              <div className="px-6 md:px-8 py-7">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+
+                  {scheme.documents.map((document, index) => (
+                    <div
+                      key={document}
+                      className="flex items-center gap-3 border-b border-slate-100 pb-3"
+                    >
+
+                      <span className="text-xs font-bold text-[#0b4f71]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+
+                      <span className="text-sm text-slate-600">
+                        {document}
+                      </span>
+
+                    </div>
+                  ))}
+
+                </div>
+
+              </div>
+
+            </section>
+
+          </div>
+
+
+          {/* ================= RIGHT SIDEBAR ================= */}
+          <aside className="space-y-6">
+
+            {/* Apply Card */}
+            <div className="bg-[#12344d] text-white">
+
+              <div className="p-6">
+
+                <p className="text-xs uppercase tracking-wider text-slate-300">
+                  Application
+                </p>
+
+                <h2 className="mt-2 text-2xl font-bold">
+                  Interested in this scheme?
+                </h2>
+
+                <p className="mt-3 text-sm text-slate-300 leading-relaxed">
+                  Visit the official government source to verify the latest
+                  eligibility requirements and application process.
+                </p>
+
+                <button
+                  className="mt-6 w-full px-5 py-3.5 bg-[#e85d04] text-white font-semibold hover:bg-[#d94f00] transition"
+                >
+                  Visit Official Website →
+                </button>
+
+              </div>
+
+            </div>
+
+
+            {/* Scheme Information */}
+            <div className="bg-white border border-slate-200">
+
+              <div className="px-6 py-5 border-b border-slate-200">
+                <h3 className="font-bold text-[#12344d]">
+                  Scheme Information
+                </h3>
+              </div>
+
+              <div className="p-6 space-y-5">
+
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">
+                    Category
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold text-slate-700">
+                    {scheme.category}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">
+                    Government Level
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold text-slate-700">
+                    {scheme.type}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">
+                    Department
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold text-slate-700 leading-relaxed">
+                    {scheme.department}
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            {/* Important Notice */}
+            <div className="border-l-4 border-[#e85d04] bg-white border border-slate-200 p-5">
+
+              <h3 className="font-bold text-[#12344d]">
+                Important
+              </h3>
+
+              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                Scheme details may change. Always verify the latest
+                information with the concerned government authority before
+                applying.
+              </p>
+
+            </div>
+
+          </aside>
+
+        </div>
+
+
+        {/* ================= BOTTOM NOTICE ================= */}
+        <section className="mt-10 bg-[#eef3f6] border border-slate-200 p-6 md:p-8">
+
+          <div className="flex gap-4">
+
+            <div className="w-10 h-10 shrink-0 bg-[#0b4f71] text-white flex items-center justify-center font-bold">
+              i
+            </div>
+
+            <div>
+
+              <h3 className="font-bold text-[#12344d]">
+                Information and eligibility notice
+              </h3>
+
+              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                Sarkar Yojna is an information and discovery platform.
+                The information displayed here is intended to help users
+                identify potentially relevant government schemes. Final
+                eligibility, required documents and application decisions
+                are determined by the concerned government authority.
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+
+
+      {/* ================= FOOTER ================= */}
+      <footer className="bg-[#082f49] text-slate-300">
+
+        <div className="max-w-7xl mx-auto px-5 py-10">
+
+          <div className="flex flex-col md:flex-row justify-between gap-8">
+
+            <div>
+
+              <h3 className="text-xl font-bold text-white">
+                Sarkar Yojna
+              </h3>
+
+              <p className="mt-2 text-sm max-w-md leading-relaxed">
+                Helping citizens discover government schemes and benefits
+                through a simple digital experience.
+              </p>
+
+            </div>
+
+            <div className="flex gap-8 text-sm">
+
+              <button
+                onClick={() => navigate("/")}
+                className="hover:text-white transition"
+              >
+                Home
+              </button>
+
+              <button
+                onClick={() => navigate("/schemes")}
+                className="hover:text-white transition"
+              >
+                Schemes
+              </button>
+
+              <button
+                onClick={() => navigate("/about")}
+                className="hover:text-white transition"
+              >
+                About
+              </button>
+
+            </div>
+
+          </div>
+
+          <div className="border-t border-white/10 mt-8 pt-5 text-xs">
+            © 2026 Sarkar Yojna. Information should be verified with
+            official government sources.
+          </div>
+
+        </div>
+
+      </footer>
+
+    </div>
+  )
+}
+
+export default SchemeDetails
