@@ -4,8 +4,11 @@ import com.aigovernmentscheme.backend.entity.User;
 import com.aigovernmentscheme.backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+<<<<<<< ours
 import com.aigovernmentscheme.backend.dto.UserProfileResponse;
 import com.aigovernmentscheme.backend.dto.UserProfileUpdateRequest;
+=======
+>>>>>>> theirs
 
 @Service
 public class UserService {
@@ -44,6 +47,7 @@ public class UserService {
 
         return jwtService.generateToken(user.getEmail());
     }
+<<<<<<< ours
 
     public User getUserByEmail(String email) {
 
@@ -98,4 +102,11 @@ public class UserService {
 
         return getUserProfile(email);
     }
+=======
+    public User getUserByEmail(String email) {
+
+    return userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+}
+>>>>>>> theirs
 }

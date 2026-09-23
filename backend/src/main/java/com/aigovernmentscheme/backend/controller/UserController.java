@@ -4,8 +4,11 @@ import com.aigovernmentscheme.backend.entity.User;
 import com.aigovernmentscheme.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+<<<<<<< ours
 import org.springframework.security.core.Authentication;
 import com.aigovernmentscheme.backend.dto.UserProfileResponse;
+=======
+>>>>>>> theirs
 
 import java.util.Map;
 
@@ -40,6 +43,7 @@ public class UserController {
                 "token", token
         ));
     }
+<<<<<<< ours
 
     @GetMapping("/profile")
         public ResponseEntity<UserProfileResponse> getProfile(Authentication authentication) {
@@ -50,4 +54,6 @@ public class UserController {
 
         return ResponseEntity.ok(profile);
     }
+=======
+>>>>>>> theirs
 }
