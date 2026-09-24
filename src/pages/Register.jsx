@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar.jsx"
+import { requireSupabase } from "../lib/supabase.js"
 
 function Register() {
   const navigate = useNavigate()
@@ -57,45 +58,24 @@ function Register() {
     try {
       setIsLoading(true)
 
-      const response = await fetch(
-        "http://localhost:8080/api/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fullName: formData.name,
-            email: formData.email,
-            password: formData.password,
-          }),
-        }
-      )
-
-      if (!response.ok) {
-        let errorMessage = "Registration failed. Please try again."
-
-        try {
-          const errorData = await response.json()
-
-          if (errorData.message) {
-            errorMessage = errorData.message
-          }
-        } catch {
-          // Keep default error message
-        }
-
-        throw new Error(errorMessage)
-      }
-
-      // Registration successful
-      navigate("/login")
+      const { error } = await requireSupabase().auth.signUp({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        options: {
+          data: { full_name: formData.name.trim() },
+          emailRedirectTo: window.location.origin,
+        },
+      })
+      if (error) throw error
+      navigate("/login", {
+        state: { notice: "Account created. Check your email to confirm your address, then sign in." },
+      })
     } catch (error) {
       console.error("Registration error:", error)
 
       setError(
         error.message ||
-          "Unable to connect to the server. Please make sure the backend is running."
+          "Unable to create your account. Check your Supabase configuration and try again."
       )
     } finally {
       setIsLoading(false)

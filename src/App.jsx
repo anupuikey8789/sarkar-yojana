@@ -9,9 +9,11 @@ import Schemes from "./pages/Schemes"
 import Recommendations from "./pages/Recommendations"
 import SchemeDetails from "./pages/SchemeDetails"
 import About from "./pages/About"
+import { AuthProvider } from "./auth/AuthProvider.jsx"
 
 function App() {
   return (
+    <AuthProvider>
     <BrowserRouter>
 
       <Routes>
@@ -32,16 +34,16 @@ function App() {
   path="/recommendations"
   element={<Recommendations />}
 />   
-     <Route
-  path="/scheme-details"
+    <Route
+  path="/scheme-details/:schemeId"
   element={<SchemeDetails />}
-
 />
 <Route path="/about" element={<About />} />
 
       </Routes>
 
     </BrowserRouter>
+    </AuthProvider>
   )
 }
 

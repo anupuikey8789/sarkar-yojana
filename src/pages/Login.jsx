@@ -1,9 +1,12 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar.jsx"
+import { useLocation } from "react-router-dom"
+import { requireSupabase } from "../lib/supabase.js"
 
 function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [formData, setFormData] = useState({
     email: "",
@@ -39,53 +42,18 @@ function Login() {
     try {
       setIsLoading(true)
 
-      const response = await fetch(
-        "http://localhost:8080/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
-        }
-      )
-
-      let data = {}
-
-      try {
-        data = await response.json()
-      } catch {
-        data = {}
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Invalid email or password."
-        )
-      }
-
-      // Backend returns the JWT token
-      if (!data.token) {
-        throw new Error("Login successful, but token was not received.")
-      }
-
-      // Store JWT token for later API requests
-      localStorage.setItem("sarkarYojnaToken", data.token)
-
-      // Store email for displaying user information later
-      localStorage.setItem("sarkarYojnaEmail", formData.email)
-
-      // Go to dashboard
+      const { error } = await requireSupabase().auth.signInWithPassword({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      })
+      if (error) throw error
       navigate("/dashboard")
     } catch (error) {
       console.error("Login error:", error)
 
       setError(
         error.message ||
-          "Unable to connect to the server. Please make sure the backend is running."
+          "Unable to sign in. Check your Supabase configuration and try again."
       )
     } finally {
       setIsLoading(false)
@@ -187,6 +155,12 @@ function Login() {
               {error && (
                 <div className="mt-6 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {error}
+                </div>
+              )}
+
+              {location.state?.notice && (
+                <div className="mt-6 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                  {location.state.notice}
                 </div>
               )}
 

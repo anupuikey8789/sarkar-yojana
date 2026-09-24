@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar.jsx"
+import { useAuth } from "../auth/AuthContext.js"
+import { getOrStartAssessment, saveAssessment } from "../lib/assessments.js"
 
 function Assessment() {
   const navigate = useNavigate()
+  const { user, loading: authLoading } = useAuth()
 
   const [step, setStep] = useState(1)
   const [assessmentId, setAssessmentId] = useState(null)
@@ -36,9 +39,8 @@ const [submitError, setSubmitError] = useState("")
    * If there is no usable assessment, we create a new one.
    */
   useEffect(() => {
-    const token = localStorage.getItem("sarkarYojnaToken")
-
-    if (!token) {
+    if (authLoading) return
+    if (!user) {
       navigate("/login")
       return
     }
@@ -48,68 +50,17 @@ const [submitError, setSubmitError] = useState("")
         setIsStartingAssessment(true)
         setAssessmentError("")
 
-        // First try to get the latest assessment
-        const latestResponse = await fetch(
-          "http://localhost:8080/api/assessments/latest",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-
-        if (latestResponse.ok) {
-          const latestAssessment = await latestResponse.json()
-
-          if (latestAssessment.assessmentId) {
-            setAssessmentId(latestAssessment.assessmentId)
-
-            sessionStorage.setItem(
-              "sarkarYojnaAssessmentId",
-              String(latestAssessment.assessmentId)
-            )
-
-            return
-          }
+        const assessment = await getOrStartAssessment(user)
+        setAssessmentId(assessment.id)
+        if (assessment.answers && Object.keys(assessment.answers).length > 0) {
+          setAnswers((current) => ({ ...current, ...assessment.answers }))
         }
-
-        // No latest assessment available, so create one
-        const startResponse = await fetch(
-          "http://localhost:8080/api/assessments/start",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-
-        if (startResponse.status === 401 || startResponse.status === 403) {
-          localStorage.removeItem("sarkarYojnaToken")
-          localStorage.removeItem("sarkarYojnaEmail")
-          navigate("/login")
-          return
-        }
-
-        if (!startResponse.ok) {
-          throw new Error("Unable to start your assessment.")
-        }
-
-        const newAssessment = await startResponse.json()
-
-        setAssessmentId(newAssessment.assessmentId)
-
-        sessionStorage.setItem(
-          "sarkarYojnaAssessmentId",
-          String(newAssessment.assessmentId)
-        )
       } catch (error) {
         console.error("Assessment initialization error:", error)
 
         setAssessmentError(
           error.message ||
-            "Unable to connect to the assessment service."
+            "Unable to start your assessment. Check your Supabase setup and try again."
         )
       } finally {
         setIsStartingAssessment(false)
@@ -117,7 +68,7 @@ const [submitError, setSubmitError] = useState("")
     }
 
     initializeAssessment()
-  }, [navigate])
+  }, [authLoading, navigate, user])
 
   const updateAnswer = (field, value) => {
     setAnswers((previous) => ({
@@ -140,134 +91,29 @@ const [submitError, setSubmitError] = useState("")
     }
   }
 
- const handleSubmit = async (event) => {
-  event.preventDefault()
-
-  console.log("=================================")
-  console.log("ASSESSMENT SUBMIT STARTED")
-  console.log("Assessment ID:", assessmentId)
-  console.log("Answers:", answers)
-  console.log("=================================")
-
-  const token = localStorage.getItem("sarkarYojnaToken")
-
-  if (!token) {
-    console.log("No JWT token found")
-    navigate("/login")
-    return
-  }
-
-  if (!assessmentId) {
-    console.log("No assessment ID found")
-    setSubmitError(
-      "Assessment could not be identified. Please try again."
-    )
-    return
-  }
-
-  try {
-    setIsSubmitting(true)
-    setSubmitError("")
-
-    const answerPayload = [
-      {
-        questionId: 1,
-        answerValue: String(answers.age),
-      },
-      {
-        questionId: 2,
-        answerValue: answers.gender,
-      },
-      {
-        questionId: 3,
-        answerValue: answers.state,
-      },
-      {
-        questionId: 4,
-        answerValue: answers.district,
-      },
-      {
-        questionId: 5,
-        answerValue: answers.income,
-      },
-      {
-        questionId: 6,
-        answerValue: answers.occupation,
-      },
-      {
-        questionId: 7,
-        answerValue: answers.education,
-      },
-      {
-        questionId: 8,
-        answerValue: answers.student,
-      },
-      {
-        questionId: 9,
-        answerValue: answers.category,
-      },
-      {
-        questionId: 10,
-        answerValue: answers.disability,
-      },
-      {
-        questionId: 11,
-        answerValue: answers.farmer,
-      },
-      {
-        questionId: 12,
-        answerValue: answers.specialCategory,
-      },
-    ]
-
-    console.log("Number of answers:", answerPayload.length)
-    console.log("Answer payload:", answerPayload)
-
-    const response = await fetch(
-      `http://localhost:8080/api/assessments/${assessmentId}/answers`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(answerPayload),
-      }
-    )
-
-    console.log("API status:", response.status)
-
-    const responseText = await response.text()
-
-    console.log("API response:", responseText)
-
-    if (response.status === 401 || response.status === 403) {
-      localStorage.removeItem("sarkarYojnaToken")
-      localStorage.removeItem("sarkarYojnaEmail")
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    if (!user) {
       navigate("/login")
       return
     }
-
-    if (!response.ok) {
-      throw new Error(
-        responseText || "Unable to save your assessment answers."
-      )
+    if (!assessmentId) {
+      setSubmitError("Assessment could not be identified. Please try again.")
+      return
     }
 
-    console.log("✅ ALL 12 ANSWERS SAVED SUCCESSFULLY")
-
-    navigate("/recommendations")
-  } catch (error) {
-    console.error("❌ Assessment submission error:", error)
-
-    setSubmitError(
-      error.message ||
-        "Unable to save your assessment. Please try again."
-    )
-  } finally {
-    setIsSubmitting(false)
+    try {
+      setIsSubmitting(true)
+      setSubmitError("")
+      await saveAssessment(user, assessmentId, answers)
+      navigate("/recommendations")
+    } catch (error) {
+      console.error("Assessment submission error:", error.message)
+      setSubmitError(error.message || "Unable to save your assessment. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
-}
   const progress = Math.round((step / totalSteps) * 100)
 
   const stepTitles = [

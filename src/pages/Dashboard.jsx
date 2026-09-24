@@ -1,55 +1,34 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar.jsx"
+import { useAuth } from "../auth/AuthContext.js"
+import { getOrCreateProfile } from "../lib/profiles.js"
+import { requireSupabase } from "../lib/supabase.js"
 
 function Dashboard() {
   const navigate = useNavigate()
+  const { user: authUser, loading: authLoading } = useAuth()
 
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
 
   useEffect(() => {
-    const token = localStorage.getItem("sarkarYojnaToken")
-
-    // If there is no login token, send the user to login
-    if (!token) {
+    if (authLoading) return
+    if (!authUser) {
       navigate("/login")
       return
     }
 
     const fetchUser = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:8080/api/user/me",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("sarkarYojnaToken")
-          localStorage.removeItem("sarkarYojnaEmail")
-          navigate("/login")
-          return
-        }
-
-        if (!response.ok) {
-          throw new Error("Unable to load your profile.")
-        }
-
-        const data = await response.json()
-
-        setUser(data)
+        setUser(await getOrCreateProfile(authUser))
       } catch (error) {
         console.error("Dashboard profile error:", error)
 
         setError(
           error.message ||
-            "Unable to connect to the server. Please try again."
+            "Unable to load your profile. Please check your Supabase setup and try again."
         )
       } finally {
         setIsLoading(false)
@@ -57,7 +36,7 @@ function Dashboard() {
     }
 
     fetchUser()
-  }, [navigate])
+  }, [authLoading, authUser, navigate])
 
   const getInitials = (name) => {
     if (!name) return "U"
@@ -70,10 +49,8 @@ function Dashboard() {
       .join("")
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("sarkarYojnaToken")
-    localStorage.removeItem("sarkarYojnaEmail")
-
+  const handleLogout = async () => {
+    await requireSupabase().auth.signOut()
     navigate("/login")
   }
 

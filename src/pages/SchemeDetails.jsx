@@ -1,36 +1,163 @@
-import { useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
 import Navbar from "../components/Navbar.jsx"
+import { getScheme } from "../lib/schemes.js"
 
 function SchemeDetails() {
   const navigate = useNavigate()
+  const { schemeId } = useParams()
 
-  const scheme = {
-    name: "PM-KISAN",
-    category: "Agriculture",
-    type: "Central Government",
-    department: "Ministry of Agriculture & Farmers Welfare",
+  const [scheme, setScheme] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-    description:
-      "PM-KISAN is a government scheme that provides financial support to eligible farmer families.",
+  // ================= FETCH SCHEME =================
 
-    benefits: [
-      "Financial assistance for eligible beneficiaries",
-      "Support for agricultural and household needs",
-      "Direct benefit transfer to eligible beneficiaries",
-    ],
+  useEffect(() => {
+    const fetchScheme = async () => {
+      try {
+        setLoading(true)
+        setError("")
 
-    eligibility: [
-      "Applicant should meet the scheme's farmer eligibility requirements",
-      "Applicant must satisfy the applicable government rules",
-      "Final eligibility is determined by the concerned authority",
-    ],
+        const data = await getScheme(schemeId)
+        if (!data) throw new Error("Scheme not found.")
+        setScheme(data)
+      } catch (error) {
+        console.error("Error fetching scheme:", error)
 
-    documents: [
-      "Aadhaar Card",
-      "Bank Account Details",
-      "Land-related documents",
-      "Other documents as required by the authority",
-    ],
+        setError(
+          error.message || "Unable to load scheme details. Check the Supabase configuration."
+        )
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (schemeId) {
+      fetchScheme()
+    }
+  }, [schemeId])
+
+  // ================= LOADING =================
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f5f7f9] text-slate-800">
+
+        <Navbar />
+
+        <main className="max-w-7xl mx-auto px-5 py-20">
+
+          <div className="bg-white border border-slate-200 p-10 text-center">
+
+            <div className="mx-auto w-8 h-8 border-4 border-slate-200 border-t-[#12344d] rounded-full animate-spin"></div>
+
+            <p className="mt-4 text-sm text-slate-600">
+              Loading scheme details...
+            </p>
+
+          </div>
+
+        </main>
+
+      </div>
+    )
+  }
+
+  // ================= ERROR =================
+
+  if (error || !scheme) {
+    return (
+      <div className="min-h-screen bg-[#f5f7f9] text-slate-800">
+
+        <Navbar />
+
+        <main className="max-w-7xl mx-auto px-5 py-20">
+
+          <div className="bg-white border border-red-200 p-10 text-center">
+
+            <h1 className="text-2xl font-bold text-[#12344d]">
+              Scheme not found
+            </h1>
+
+            <p className="mt-3 text-sm text-red-600">
+              {error || "The requested scheme could not be found."}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => navigate("/schemes")}
+              className="mt-6 px-6 py-3 bg-[#12344d] text-white font-semibold hover:bg-[#0b4f71] transition"
+            >
+              ← Back to schemes
+            </button>
+
+          </div>
+
+        </main>
+
+      </div>
+    )
+  }
+
+  // ================= BENEFITS =================
+
+  const benefits = scheme.benefits
+    ? scheme.benefits
+        .split(/\r?\n|;/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+    : []
+
+  // ================= DOCUMENTS =================
+
+  const documents = scheme.requiredDocuments
+    ? scheme.requiredDocuments
+        .split(/\r?\n|;/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+    : []
+
+  // ================= ELIGIBILITY =================
+
+  const eligibility = []
+
+  if (scheme.gender && scheme.gender !== "Any") {
+    eligibility.push(`Gender: ${scheme.gender}`)
+  }
+
+  if (scheme.occupation && scheme.occupation !== "Any") {
+    eligibility.push(`Occupation: ${scheme.occupation}`)
+  }
+
+  if (scheme.education && scheme.education !== "Any") {
+    eligibility.push(`Education: ${scheme.education}`)
+  }
+
+  if (scheme.disabilityRequired === true) {
+    eligibility.push("Disability requirement applies")
+  }
+
+  if (scheme.incomeLimit) {
+    eligibility.push(
+      `Annual income limit: ₹${Number(
+        scheme.incomeLimit
+      ).toLocaleString("en-IN")}`
+    )
+  }
+
+  if (scheme.ageMin !== null && scheme.ageMin !== undefined) {
+    eligibility.push(`Minimum age: ${scheme.ageMin} years`)
+  }
+
+  if (scheme.ageMax !== null && scheme.ageMax !== undefined) {
+    eligibility.push(`Maximum age: ${scheme.ageMax} years`)
+  }
+
+  if (eligibility.length === 0) {
+    eligibility.push(
+      "Check the official government portal for the complete eligibility requirements."
+    )
   }
 
   return (
@@ -39,11 +166,14 @@ function SchemeDetails() {
       <Navbar />
 
       {/* ================= PAGE HEADER ================= */}
+
       <section className="bg-[#063b5c] text-white">
+
         <div className="max-w-7xl mx-auto px-5 py-10">
 
           <button
-            onClick={() => navigate(-1)}
+            type="button"
+            onClick={() => navigate("/schemes")}
             className="text-sm text-slate-300 hover:text-white transition mb-8"
           >
             ← Back to schemes
@@ -56,21 +186,21 @@ function SchemeDetails() {
               <div className="flex flex-wrap gap-3">
 
                 <span className="px-3 py-1.5 bg-white/10 border border-white/20 text-xs font-semibold uppercase tracking-wide">
-                  {scheme.category}
+                  {scheme.category || "Government"}
                 </span>
 
                 <span className="px-3 py-1.5 bg-[#e85d04] text-white text-xs font-semibold uppercase tracking-wide">
-                  {scheme.type}
+                  {scheme.level || "Government"}
                 </span>
 
               </div>
 
               <h1 className="mt-5 text-4xl md:text-5xl font-bold tracking-tight">
-                {scheme.name}
+                {scheme.schemeName}
               </h1>
 
               <p className="mt-4 text-lg text-slate-300">
-                {scheme.department}
+                {scheme.ministry || "Government Department"}
               </p>
 
             </div>
@@ -90,90 +220,114 @@ function SchemeDetails() {
           </div>
 
         </div>
+
       </section>
 
-
       {/* ================= MAIN CONTENT ================= */}
+
       <main className="max-w-7xl mx-auto px-5 py-12">
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           {/* ================= LEFT CONTENT ================= */}
+
           <div className="lg:col-span-2 space-y-6">
 
             {/* Overview */}
+
             <section className="bg-white border border-slate-200">
 
               <div className="px-6 md:px-8 py-5 border-b border-slate-200">
+
                 <h2 className="text-xl font-bold text-[#12344d]">
                   Overview
                 </h2>
+
               </div>
 
               <div className="px-6 md:px-8 py-7">
 
                 <p className="text-slate-600 leading-relaxed">
-                  {scheme.description}
+                  {scheme.description ||
+                    "Detailed description is available on the official government portal."}
                 </p>
 
               </div>
 
             </section>
 
-
             {/* Benefits */}
+
             <section className="bg-white border border-slate-200">
 
               <div className="px-6 md:px-8 py-5 border-b border-slate-200">
+
                 <h2 className="text-xl font-bold text-[#12344d]">
                   Benefits
                 </h2>
+
               </div>
 
               <div className="px-6 md:px-8 py-7">
 
-                <div className="space-y-5">
+                {benefits.length > 0 ? (
 
-                  {scheme.benefits.map((benefit, index) => (
-                    <div
-                      key={benefit}
-                      className="flex gap-4"
-                    >
+                  <div className="space-y-5">
 
-                      <div className="w-8 h-8 shrink-0 bg-[#0b4f71] text-white flex items-center justify-center text-xs font-bold">
-                        {String(index + 1).padStart(2, "0")}
+                    {benefits.map((benefit, index) => (
+
+                      <div
+                        key={`${benefit}-${index}`}
+                        className="flex gap-4"
+                      >
+
+                        <div className="w-8 h-8 shrink-0 bg-[#0b4f71] text-white flex items-center justify-center text-xs font-bold">
+                          {String(index + 1).padStart(2, "0")}
+                        </div>
+
+                        <p className="text-slate-600 leading-relaxed pt-1">
+                          {benefit}
+                        </p>
+
                       </div>
 
-                      <p className="text-slate-600 leading-relaxed pt-1">
-                        {benefit}
-                      </p>
+                    ))}
 
-                    </div>
-                  ))}
+                  </div>
 
-                </div>
+                ) : (
+
+                  <p className="text-sm text-slate-600">
+                    Benefit information is available on the official
+                    government portal.
+                  </p>
+
+                )}
 
               </div>
 
             </section>
 
-
             {/* Eligibility */}
+
             <section className="bg-white border border-slate-200">
 
               <div className="px-6 md:px-8 py-5 border-b border-slate-200">
+
                 <h2 className="text-xl font-bold text-[#12344d]">
                   Eligibility
                 </h2>
+
               </div>
 
               <div className="px-6 md:px-8 py-7">
 
                 <div className="space-y-4">
 
-                  {scheme.eligibility.map((item) => (
+                  {eligibility.map((item, index) => (
+
                     <div
-                      key={item}
+                      key={`${item}-${index}`}
                       className="flex gap-4"
                     >
 
@@ -184,46 +338,91 @@ function SchemeDetails() {
                       </p>
 
                     </div>
+
                   ))}
 
                 </div>
+
+                <p className="mt-6 text-xs text-slate-500 leading-relaxed">
+                  These details are based on the scheme information currently
+                  stored in Sarkar Yojna. Always verify the complete eligibility
+                  conditions with the concerned government authority.
+                </p>
 
               </div>
 
             </section>
 
-
             {/* Documents */}
+
             <section className="bg-white border border-slate-200">
 
               <div className="px-6 md:px-8 py-5 border-b border-slate-200">
+
                 <h2 className="text-xl font-bold text-[#12344d]">
                   Required Documents
                 </h2>
+
               </div>
 
               <div className="px-6 md:px-8 py-7">
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                {documents.length > 0 ? (
 
-                  {scheme.documents.map((document, index) => (
-                    <div
-                      key={document}
-                      className="flex items-center gap-3 border-b border-slate-100 pb-3"
-                    >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
 
-                      <span className="text-xs font-bold text-[#0b4f71]">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
+                    {documents.map((document, index) => (
 
-                      <span className="text-sm text-slate-600">
-                        {document}
-                      </span>
+                      <div
+                        key={`${document}-${index}`}
+                        className="flex items-center gap-3 border-b border-slate-100 pb-3"
+                      >
 
-                    </div>
-                  ))}
+                        <span className="text-xs font-bold text-[#0b4f71]">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
 
-                </div>
+                        <span className="text-sm text-slate-600">
+                          {document}
+                        </span>
+
+                      </div>
+
+                    ))}
+
+                  </div>
+
+                ) : (
+
+                  <p className="text-sm text-slate-600">
+                    Required document information is available on the
+                    official government portal.
+                  </p>
+
+                )}
+
+              </div>
+
+            </section>
+
+            {/* Application Process */}
+
+            <section className="bg-white border border-slate-200">
+
+              <div className="px-6 md:px-8 py-5 border-b border-slate-200">
+
+                <h2 className="text-xl font-bold text-[#12344d]">
+                  Application Process
+                </h2>
+
+              </div>
+
+              <div className="px-6 md:px-8 py-7">
+
+                <p className="text-slate-600 leading-relaxed">
+                  {scheme.applicationProcess ||
+                    "Please visit the official government portal for the latest application process."}
+                </p>
 
               </div>
 
@@ -231,11 +430,12 @@ function SchemeDetails() {
 
           </div>
 
-
           {/* ================= RIGHT SIDEBAR ================= */}
+
           <aside className="space-y-6">
 
             {/* Apply Card */}
+
             <div className="bg-[#12344d] text-white">
 
               <div className="p-6">
@@ -253,64 +453,121 @@ function SchemeDetails() {
                   eligibility requirements and application process.
                 </p>
 
-                <button
-                  className="mt-6 w-full px-5 py-3.5 bg-[#e85d04] text-white font-semibold hover:bg-[#d94f00] transition"
-                >
-                  Visit Official Website →
-                </button>
+                {scheme.officialUrl && (
+
+                  <a
+                    href={scheme.officialUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-6 block w-full px-5 py-3.5 bg-[#e85d04] text-white font-semibold text-center hover:bg-[#d94f00] transition"
+                  >
+                    Visit Official Website →
+                  </a>
+
+                )}
+
+                {scheme.applicationUrl &&
+                  scheme.applicationUrl !== scheme.officialUrl && (
+
+                    <a
+                      href={scheme.applicationUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 block w-full px-5 py-3.5 border border-white/30 text-white font-semibold text-center hover:bg-white/10 transition"
+                    >
+                      Application Portal →
+                    </a>
+
+                  )}
 
               </div>
 
             </div>
 
-
             {/* Scheme Information */}
+
             <div className="bg-white border border-slate-200">
 
               <div className="px-6 py-5 border-b border-slate-200">
+
                 <h3 className="font-bold text-[#12344d]">
                   Scheme Information
                 </h3>
+
               </div>
 
               <div className="p-6 space-y-5">
 
                 <div>
+
                   <p className="text-xs uppercase tracking-wide text-slate-400">
                     Category
                   </p>
 
                   <p className="mt-1 text-sm font-semibold text-slate-700">
-                    {scheme.category}
+                    {scheme.category || "Not specified"}
                   </p>
+
                 </div>
 
                 <div>
+
                   <p className="text-xs uppercase tracking-wide text-slate-400">
                     Government Level
                   </p>
 
                   <p className="mt-1 text-sm font-semibold text-slate-700">
-                    {scheme.type}
+                    {scheme.level || "Not specified"}
                   </p>
+
                 </div>
 
                 <div>
+
                   <p className="text-xs uppercase tracking-wide text-slate-400">
                     Department
                   </p>
 
                   <p className="mt-1 text-sm font-semibold text-slate-700 leading-relaxed">
-                    {scheme.department}
+                    {scheme.ministry || "Not specified"}
                   </p>
+
                 </div>
+
+                <div>
+
+                  <p className="text-xs uppercase tracking-wide text-slate-400">
+                    State
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold text-slate-700">
+                    {scheme.state || "All"}
+                  </p>
+
+                </div>
+
+                {scheme.helpline && (
+
+                  <div>
+
+                    <p className="text-xs uppercase tracking-wide text-slate-400">
+                      Helpline
+                    </p>
+
+                    <p className="mt-1 text-sm font-semibold text-slate-700">
+                      {scheme.helpline}
+                    </p>
+
+                  </div>
+
+                )}
 
               </div>
 
             </div>
 
-
             {/* Important Notice */}
+
             <div className="border-l-4 border-[#e85d04] bg-white border border-slate-200 p-5">
 
               <h3 className="font-bold text-[#12344d]">
@@ -329,8 +586,8 @@ function SchemeDetails() {
 
         </div>
 
-
         {/* ================= BOTTOM NOTICE ================= */}
+
         <section className="mt-10 bg-[#eef3f6] border border-slate-200 p-6 md:p-8">
 
           <div className="flex gap-4">
@@ -361,8 +618,8 @@ function SchemeDetails() {
 
       </main>
 
-
       {/* ================= FOOTER ================= */}
+
       <footer className="bg-[#082f49] text-slate-300">
 
         <div className="max-w-7xl mx-auto px-5 py-10">
@@ -385,6 +642,7 @@ function SchemeDetails() {
             <div className="flex gap-8 text-sm">
 
               <button
+                type="button"
                 onClick={() => navigate("/")}
                 className="hover:text-white transition"
               >
@@ -392,6 +650,7 @@ function SchemeDetails() {
               </button>
 
               <button
+                type="button"
                 onClick={() => navigate("/schemes")}
                 className="hover:text-white transition"
               >
@@ -399,6 +658,7 @@ function SchemeDetails() {
               </button>
 
               <button
+                type="button"
                 onClick={() => navigate("/about")}
                 className="hover:text-white transition"
               >

@@ -2,10 +2,7 @@ package com.aigovernmentscheme.backend.service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-<<<<<<< ours
-=======
 import org.springframework.beans.factory.annotation.Value;
->>>>>>> theirs
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -14,58 +11,34 @@ import java.util.Date;
 
 @Service
 public class JwtService {
+    private final SecretKey signingKey;
+    private final long expirationTime;
 
-<<<<<<< ours
-    private final String secretKey =
-            "AI_Government_Scheme_Finder_Secret_Key_2026_Secure";
-=======
-    @Value("${JWT_SECRET}")
-    private String secretKey;
->>>>>>> theirs
-
-    private final long expirationTime = 1000 * 60 * 60;
-
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(
-                secretKey.getBytes(StandardCharsets.UTF_8)
-        );
+    public JwtService(@Value("${app.jwt.secret}") String secret,
+                      @Value("${app.jwt.expiration-ms:3600000}") long expirationTime) {
+        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalArgumentException("JWT_SECRET must be at least 32 bytes");
+        }
+        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expirationTime = expirationTime;
     }
 
     public String generateToken(String email) {
-
+        Date now = new Date();
         return Jwts.builder()
                 .subject(email)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(getSigningKey())
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expirationTime))
+                .signWith(signingKey)
                 .compact();
     }
-<<<<<<< ours
 
-    public String extractEmail(String token) {
-
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
-
-    public boolean isTokenValid(String token) {
-
+    public String extractEmailIfValid(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token);
-
-            return true;
-
-        } catch (Exception e) {
-            return false;
+            return Jwts.parser().verifyWith(signingKey).build()
+                    .parseSignedClaims(token).getPayload().getSubject();
+        } catch (RuntimeException exception) {
+            return null;
         }
     }
-=======
->>>>>>> theirs
 }

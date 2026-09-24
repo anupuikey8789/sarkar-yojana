@@ -1,6 +1,16 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useAuth } from "../auth/AuthContext.js"
+import { requireSupabase } from "../lib/supabase.js"
 
 function Navbar() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    await requireSupabase().auth.signOut()
+    navigate("/")
+  }
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
       {/* Top government-style strip */}
@@ -62,21 +72,22 @@ function Navbar() {
             हिन्दी
           </button>
 
-          <Link
-            to="/login"
-            className="px-5 py-2.5 bg-[#e85d04] text-white rounded-sm hover:bg-[#d94f00] transition"
-          >
-            Login
-          </Link>
+          {user ? (
+            <>
+              <Link to="/dashboard" className="text-slate-600 hover:text-[#e85d04]">Dashboard</Link>
+              <button type="button" onClick={handleLogout} className="px-5 py-2.5 bg-[#e85d04] text-white rounded-sm hover:bg-[#d94f00] transition">Sign out</button>
+            </>
+          ) : (
+            <Link to="/login" className="px-5 py-2.5 bg-[#e85d04] text-white rounded-sm hover:bg-[#d94f00] transition">Login</Link>
+          )}
         </div>
 
         {/* Mobile Login */}
-        <Link
-          to="/login"
-          className="md:hidden px-4 py-2 bg-[#e85d04] text-white rounded-sm text-sm"
-        >
-          Login
-        </Link>
+        {user ? (
+          <button type="button" onClick={handleLogout} className="md:hidden px-4 py-2 bg-[#e85d04] text-white rounded-sm text-sm">Sign out</button>
+        ) : (
+          <Link to="/login" className="md:hidden px-4 py-2 bg-[#e85d04] text-white rounded-sm text-sm">Login</Link>
+        )}
       </nav>
     </header>
   )
