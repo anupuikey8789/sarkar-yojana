@@ -1,10 +1,12 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar.jsx"
 import { requireSupabase } from "../lib/supabase.js"
 
 function Register() {
   const navigate = useNavigate()
+  const signupRequestInFlight = useRef(false)
+  const lastSignupAttempt = useRef({ email: "", at: 0 })
 
   const [formData, setFormData] = useState({
     name: "",
@@ -32,6 +34,8 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (signupRequestInFlight.current) return
+
     setError("")
 
     // Basic validation
@@ -55,11 +59,23 @@ function Register() {
       return
     }
 
+    const email = formData.email.trim().toLowerCase()
+    const now = Date.now()
+    if (
+      lastSignupAttempt.current.email === email &&
+      now - lastSignupAttempt.current.at < 60_000
+    ) {
+      setError("Please wait a minute before trying to create an account with this email again.")
+      return
+    }
+
     try {
+      signupRequestInFlight.current = true
+      lastSignupAttempt.current = { email, at: now }
       setIsLoading(true)
 
       const { error } = await requireSupabase().auth.signUp({
-        email: formData.email.trim().toLowerCase(),
+        email,
         password: formData.password,
         options: {
           data: { full_name: formData.name.trim() },
@@ -74,10 +90,14 @@ function Register() {
       console.error("Registration error:", error)
 
       setError(
-        error.message ||
-          "Unable to create your account. Check your Supabase configuration and try again."
+        error.status === 429 ||
+          /rate.?limit|too many requests|email.*limit/i.test(error.message || "")
+          ? "Supabase has temporarily limited auth emails for this project. Its built-in email service allows only 2 emails per hour. Please wait before retrying, or ask the site administrator to configure custom SMTP in Supabase (Authentication → Emails → SMTP Settings). If you already submitted this email, check your inbox before trying again."
+          : error.message ||
+              "Unable to create your account. Check your Supabase configuration and try again."
       )
     } finally {
+      signupRequestInFlight.current = false
       setIsLoading(false)
     }
   }
