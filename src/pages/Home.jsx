@@ -1,7 +1,17 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar.jsx"
+import { useState } from "react"
 
 function Home() {
+  const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const handleSearch = (event) => {
+    event.preventDefault()
+    const query = searchQuery.trim()
+    navigate(query ? `/schemes?search=${encodeURIComponent(query)}` : "/schemes")
+  }
+
   const categories = [
   {
     title: "Students",
@@ -111,17 +121,20 @@ function Home() {
 
            {/* Search + Eligibility */}
 <div className="mt-9 max-w-4xl">
-  <div className="bg-white p-2 shadow-xl flex flex-col sm:flex-row">
+  <form onSubmit={handleSearch} className="bg-white p-2 shadow-xl flex flex-col sm:flex-row">
     <input
       type="text"
+      value={searchQuery}
+      onChange={(event) => setSearchQuery(event.target.value)}
       placeholder="Search schemes, scholarships, pensions, jobs..."
+      aria-label="Search government schemes"
       className="flex-1 px-5 py-4 text-slate-800 outline-none"
     />
 
-    <button className="mt-2 sm:mt-0 px-8 py-4 bg-[#e85d04] text-white font-semibold hover:bg-[#d94f00] transition">
+    <button type="submit" className="mt-2 sm:mt-0 px-8 py-4 bg-[#e85d04] text-white font-semibold hover:bg-[#d94f00] transition">
       Search
     </button>
-  </div>
+  </form>
 
   <div className="mt-4 flex flex-wrap items-center gap-3">
     <Link
@@ -158,26 +171,6 @@ function Home() {
 </div>
 
 
-            {/* Trending */}
-            <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
-              <span className="text-slate-300">Popular:</span>
-
-              <span className="border border-white/30 px-3 py-1.5 bg-white/10">
-                Scholarships
-              </span>
-
-              <span className="border border-white/30 px-3 py-1.5 bg-white/10">
-                Farmers
-              </span>
-
-              <span className="border border-white/30 px-3 py-1.5 bg-white/10">
-                Women
-              </span>
-
-              <span className="border border-white/30 px-3 py-1.5 bg-white/10">
-                Employment
-              </span>
-            </div>
           </div>
         </div>
       </section>

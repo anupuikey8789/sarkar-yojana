@@ -1,15 +1,27 @@
 import { useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import Navbar from "../components/Navbar.jsx"
 import { listSchemes } from "../lib/schemes.js"
 
 function Schemes() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [schemes, setSchemes] = useState([])
-  const [searchTerm, setSearchTerm] = useState("")
+  const searchTerm = searchParams.get("search") ?? ""
   const [selectedCategory, setSelectedCategory] = useState("All")
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+
+  const handleSearch = (event) => {
+    event.preventDefault()
+    const query = searchTerm.trim()
+    setSearchParams(query ? { search: query } : {})
+  }
+
+  const updateSearch = (event) => {
+    const query = event.target.value
+    setSearchParams(query ? { search: query } : {}, { replace: true })
+  }
 
   // ================= FETCH SCHEMES FROM BACKEND =================
 
@@ -147,26 +159,24 @@ function Schemes() {
               Search schemes
             </label>
 
-            <div className="flex flex-col sm:flex-row border border-slate-300 bg-white">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row border border-slate-300 bg-white">
 
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(event) =>
-                  setSearchTerm(event.target.value)
-                }
+                onChange={updateSearch}
                 placeholder="Search by scheme name, benefit or category..."
                 className="flex-1 px-5 py-4 outline-none text-slate-700"
               />
 
               <button
-                type="button"
+                type="submit"
                 className="px-8 py-4 bg-[#e85d04] text-white font-semibold hover:bg-[#d94f00] transition"
               >
                 Search
               </button>
 
-            </div>
+            </form>
 
           </div>
 
