@@ -100,14 +100,15 @@ create policy "published schemes are visible"
   using (is_published);
 grant usage on schema public to anon, authenticated;
 
-insert into public.schemes (id, scheme_name, category, description, is_published)
+insert into public.schemes (id, scheme_name, category, description, official_url, is_published)
 values
-  ('2e54dc41-1690-4a8a-9ccd-9c247ce5b3d1', 'PM-KISAN', 'Agriculture', 'Financial support for eligible farmer families to support agricultural needs.', true),
-  ('d12875a4-f5b2-4f1a-8a18-b1a90b46e80c', 'Post-Matric Scholarship', 'Education', 'Financial assistance for eligible students pursuing education after matriculation.', true),
-  ('20c1bb6a-017d-4f0d-a16a-42fdf4a79d12', 'Pradhan Mantri Kaushal Vikas Yojana', 'Skill Development', 'Skill training and certification opportunities for eligible candidates.', true)
+  ('2e54dc41-1690-4a8a-9ccd-9c247ce5b3d1', 'PM-KISAN', 'Agriculture', 'Financial support for eligible farmer families to support agricultural needs.', 'https://pmkisan.gov.in/', true),
+  ('d12875a4-f5b2-4f1a-8a18-b1a90b46e80c', 'Post-Matric Scholarship', 'Education', 'Financial assistance for eligible students pursuing education after matriculation.', 'https://scholarships.gov.in/Students', true),
+  ('20c1bb6a-017d-4f0d-a16a-42fdf4a79d12', 'Pradhan Mantri Kaushal Vikas Yojana', 'Skill Development', 'Skill training and certification opportunities for eligible candidates.', 'https://www.skillindiadigital.gov.in/pmkvy-dashboard', true)
 on conflict (id) do update set
   scheme_name = excluded.scheme_name,
   category = excluded.category,
   description = excluded.description,
+  official_url = excluded.official_url,
   is_published = excluded.is_published,
   updated_at = now();

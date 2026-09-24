@@ -50,18 +50,21 @@ function Home() {
  const popularSchemes = [
   {
     name: "PM-KISAN",
+    schemeId: "2e54dc41-1690-4a8a-9ccd-9c247ce5b3d1",
     category: "Agriculture",
     description:
       "Financial support for eligible farmer families to support agricultural needs.",
   },
   {
     name: "Post-Matric Scholarship",
+    schemeId: "d12875a4-f5b2-4f1a-8a18-b1a90b46e80c",
     category: "Education",
     description:
       "Financial assistance for eligible students pursuing education after matriculation.",
   },
   {
     name: "Pradhan Mantri Kaushal Vikas Yojana",
+    schemeId: "20c1bb6a-017d-4f0d-a16a-42fdf4a79d12",
     category: "Skill Development",
     description:
       "Skill training and certification opportunities for eligible candidates.",
@@ -458,7 +461,7 @@ function Home() {
                 </p>
 
                 <Link
-                  to="/scheme-details"
+                  to={`/scheme-details/${scheme.schemeId}`}
                   className="inline-block mt-6 text-sm font-semibold text-[#e85d04]"
                 >
                   View details →

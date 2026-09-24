@@ -1,42 +1,54 @@
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import Navbar from "../components/Navbar.jsx"
+import { listSchemes } from "../lib/schemes.js"
+
+const recommendationDetails = {
+  "pm-kisan": {
+    match: "Potentially relevant",
+    reasons: ["Occupation information may match", "Agriculture-related support"],
+  },
+  "post-matric scholarship": {
+    match: "Potentially relevant",
+    reasons: ["Education details may match", "Student support category"],
+  },
+  "pradhan mantri kaushal vikas yojana": {
+    match: "Potentially relevant",
+    reasons: ["Employment or skill-development support", "Candidate eligibility may apply"],
+  },
+}
 
 function Recommendations() {
-  const recommendations = [
-    {
-      name: "PM-KISAN",
-      category: "Agriculture",
-      match: "High relevance",
-      description:
-        "Financial support for eligible farmer families under the applicable government requirements.",
-      reasons: [
-        "Occupation information may match",
-        "Agriculture-related support",
-      ],
-    },
-    {
-      name: "Post-Matric Scholarship",
-      category: "Education",
-      match: "Potentially relevant",
-      description:
-        "Financial assistance for eligible students pursuing education after matriculation.",
-      reasons: [
-        "Education details may match",
-        "Student support category",
-      ],
-    },
-    {
-      name: "Pradhan Mantri Kaushal Vikas Yojana",
-      category: "Skill Development",
-      match: "Potentially relevant",
-      description:
-        "Skill training and certification opportunities for eligible candidates.",
-      reasons: [
-        "Employment or skill-development support",
-        "Candidate eligibility may apply",
-      ],
-    },
-  ]
+  const [recommendations, setRecommendations] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
+
+  useEffect(() => {
+    let active = true
+
+    listSchemes()
+      .then((schemes) => {
+        if (!active) return
+        setRecommendations(
+          schemes
+            .map((scheme) => {
+              const details = recommendationDetails[scheme.schemeName?.toLowerCase()]
+              return details ? { ...scheme, ...details } : null
+            })
+            .filter(Boolean),
+        )
+      })
+      .catch((error) => {
+        if (active) setLoadError(error.message || "Unable to load recommendations.")
+      })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#f5f7f9] text-slate-800">
@@ -135,9 +147,22 @@ function Recommendations() {
         {/* ================= RECOMMENDATION CARDS ================= */}
         <div className="mt-10 space-y-5">
 
-          {recommendations.map((scheme, index) => (
+          {isLoading ? (
+            <p className="bg-white border border-slate-200 p-6 text-slate-600">
+              Loading recommendations...
+            </p>
+          ) : loadError ? (
+            <p role="alert" className="bg-red-50 border border-red-200 p-6 text-red-700">
+              {loadError}
+            </p>
+          ) : recommendations.length === 0 ? (
+            <p className="bg-white border border-slate-200 p-6 text-slate-600">
+              No matching published schemes are available yet.
+            </p>
+          ) : (
+            recommendations.map((scheme, index) => (
             <article
-              key={scheme.name}
+              key={scheme.schemeId}
               className="bg-white border border-slate-200 hover:border-[#0b4f71] hover:shadow-md transition"
             >
 
@@ -165,7 +190,7 @@ function Recommendations() {
                     </div>
 
                     <h3 className="mt-5 text-2xl font-bold text-[#12344d]">
-                      {scheme.name}
+                      {scheme.schemeName}
                     </h3>
 
                     <p className="mt-3 text-slate-600 leading-relaxed max-w-3xl">
@@ -200,11 +225,22 @@ function Recommendations() {
                   <div className="lg:w-52 shrink-0 flex flex-col gap-3">
 
                     <Link
-                      to="/scheme-details"
+                      to={`/scheme-details/${scheme.schemeId}`}
                       className="w-full text-center px-5 py-3 bg-[#0b4f71] text-white font-semibold hover:bg-[#083e59] transition"
                     >
                       View Details
                     </Link>
+
+                    {scheme.officialUrl && (
+                      <a
+                        href={scheme.officialUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full text-center px-5 py-3 border border-slate-300 text-[#12344d] font-semibold hover:border-[#0b4f71] hover:bg-slate-50 transition"
+                      >
+                        Official Website ↗
+                      </a>
+                    )}
 
                     <button
                       className="w-full px-5 py-3 border border-slate-300 text-[#12344d] font-semibold hover:border-[#0b4f71] hover:bg-slate-50 transition"
@@ -219,7 +255,8 @@ function Recommendations() {
               </div>
 
             </article>
-          ))}
+            ))
+          )}
 
         </div>
 
