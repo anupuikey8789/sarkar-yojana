@@ -59,25 +59,25 @@ function Home() {
 
  const popularSchemes = [
   {
-    name: "PM-KISAN",
+    name: "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
     schemeId: "2e54dc41-1690-4a8a-9ccd-9c247ce5b3d1",
     category: "Agriculture",
     description:
       "Financial support for eligible farmer families to support agricultural needs.",
   },
   {
-    name: "Post-Matric Scholarship",
-    schemeId: "d12875a4-f5b2-4f1a-8a18-b1a90b46e80c",
+    name: "AICTE Pragati Scholarship",
+    schemeId: "bceb0c4b-501c-45e3-a978-5f1c398852bc",
     category: "Education",
     description:
-      "Financial assistance for eligible students pursuing education after matriculation.",
+      "Scholarship support for eligible girl students pursuing an AICTE-approved technical degree.",
   },
   {
-    name: "Pradhan Mantri Kaushal Vikas Yojana",
-    schemeId: "20c1bb6a-017d-4f0d-a16a-42fdf4a79d12",
-    category: "Skill Development",
+    name: "Pradhan Mantri Awas Yojana - Urban 2.0 (PMAY-U 2.0)",
+    schemeId: "b1b5913a-430b-4056-84a7-6a681f0bf6a8",
+    category: "Housing",
     description:
-      "Skill training and certification opportunities for eligible candidates.",
+      "Housing assistance for eligible families in urban areas under PMAY-U 2.0.",
   },
 ]
 
